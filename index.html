@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Atlas Pressworks — Digital Content Publishing</title>
+  <meta name="description" content="A professional digital content publishing company delivering editorial, distribution, and audience growth for modern brands." />
+
+  <style>
+    /* ========== Design Tokens ========== */
+    :root{
+      --bg: #0b1220;
+      --panel: rgba(255,255,255,.06);
+      --panel-2: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.72);
+      --faint: rgba(255,255,255,.55);
+      --brand: #7c5cff;
+      --brand-2: #22d3ee;
+      --ring: rgba(124,92,255,.45);
+      --border: rgba(255,255,255,.12);
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+      --radius: 18px;
+      --max: 1180px;
+
+      /* Ad sizing: tweak later as your inventory requires */
+      --ad-top-min: 90px;
+      --ad-rail-width: 180px;
+      --ad-catfish-height: 80px;
+      --gap: 18px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% -10%, rgba(124,92,255,.35), transparent 55%),
+        radial-gradient(900px 500px at 90% 10%, rgba(34,211,238,.24), transparent 55%),
+        radial-gradient(1200px 900px at 50% 120%, rgba(255,255,255,.06), transparent 60%),
+        var(--bg);
+      line-height:1.55;
+    }
+
+    a{color:inherit;text-decoration:none}
+    a:hover{text-decoration:underline}
+    img{max-width:100%;display:block}
+
+    /* ========== Utilities ========== */
+    .container{max-width:var(--max); margin:0 auto; padding:0 20px;}
+    .stack{display:flex; flex-direction:column; gap:var(--gap);}
+    .row{display:flex; gap:var(--gap); align-items:center; justify-content:space-between;}
+    .pill{
+      display:inline-flex; align-items:center; gap:10px;
+      padding:8px 12px; border:1px solid var(--border);
+      background:rgba(255,255,255,.04); border-radius:999px;
+      color:var(--muted); font-weight:600; font-size:13px;
+      backdrop-filter: blur(10px);
+    }
+    .pill .dot{
+      width:10px;height:10px;border-radius:50%;
+      background:linear-gradient(135deg,var(--brand),var(--brand-2));
+      box-shadow:0 0 0 6px rgba(124,92,255,.12);
+    }
+    .card{
+      border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+    .card-pad{padding:22px;}
+    .muted{color:var(--muted)}
+    .faint{color:var(--faint)}
+    .sr-only{
+      position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+      overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+    }
+
+    /* ========== Header / Nav ========== */
+    header{
+      position:sticky; top:0; z-index:50;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background:rgba(9,14,28,.62);
+      backdrop-filter: blur(18px);
+    }
+    .nav{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 0;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.2px;
+    }
+    .logo{
+      width:34px; height:34px; border-radius:12px;
+      background:linear-gradient(135deg,var(--brand),var(--brand-2));
+      box-shadow:0 10px 30px rgba(124,92,255,.30);
+    }
+    nav ul{
+      list-style:none; display:flex; gap:18px; padding:0; margin:0;
+      align-items:center;
+    }
+    nav a{color:var(--muted); font-weight:700; font-size:14px}
+    nav a:hover{color:var(--text); text-decoration:none}
+
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:12px 14px; border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.06);
+      color:var(--text); font-weight:800; font-size:14px;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      cursor:pointer;
+    }
+    .btn:hover{transform: translateY(-1px); background:rgba(255,255,255,.10)}
+    .btn-primary{
+      border-color: rgba(124,92,255,.55);
+      background: linear-gradient(135deg, rgba(124,92,255,.95), rgba(34,211,238,.70));
+      box-shadow: 0 18px 50px rgba(124,92,255,.22);
+    }
+    .btn-primary:hover{border-color: rgba(34,211,238,.55)}
+    .nav-cta{display:flex; gap:10px; align-items:center;}
+
+    /* Mobile nav (simple) */
+    .nav-toggle{display:none}
+    @media (max-width: 860px){
+      nav ul{display:none}
+      .nav-toggle{display:inline-flex}
+    }
+
+    /* ========== Page Layout with Side Rails ========== */
+    /* Three-column reserved layout: left rail | content | right rail */
+    .page{
+      display:grid;
+      grid-template-columns: minmax(0, var(--ad-rail-width)) minmax(0, 1fr) minmax(0, var(--ad-rail-width));
+      gap: var(--gap);
+      align-items:start;
+      padding: 18px 0 0;
+    }
+
+    /* On smaller screens: rails collapse below or disappear */
+    @media (max-width: 1100px){
+      :root{ --ad-rail-width: 160px; }
+    }
+    @media (max-width: 980px){
+      .page{ grid-template-columns: 1fr; }
+      .sidebar-left, .sidebar-right{ display:none; }
+    }
+
+    main{min-width:0;} /* prevents overflow in grid */
+    section{scroll-margin-top:90px;}
+
+    /* ========== Ad Placeholders Styling ========== */
+    .ad{
+      border:1px dashed rgba(255,255,255,.25);
+      border-radius: 16px;
+      background: rgba(255,255,255,.04);
+      color: rgba(255,255,255,.65);
+      display:flex; align-items:center; justify-content:center;
+      text-align:center;
+      padding: 14px;
+      min-height: var(--ad-top-min);
+    }
+    .ad small{display:block; color: rgba(255,255,255,.55); font-weight:700; margin-top:6px}
+    .ad-rail{
+      min-height: 600px;
+      position: sticky;
+      top: 92px;
+    }
+    .ad-rail .ad{min-height: 600px;}
+    .ad-note{font-size:12px; line-height:1.4; color: rgba(255,255,255,.55); margin-top:10px}
+
+    /* Top banner container: supports single or two-up layout */
+    .ad-container-top{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: var(--gap);
+      margin-top: 14px;
+    }
+    .ad-container-top.two-up{
+      grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width: 760px){
+      .ad-container-top.two-up{ grid-template-columns: 1fr; }
+    }
+
+    /* ========== Hero ========== */
+    .hero{
+      padding: 34px 0 8px;
+    }
+    .hero-grid{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: var(--gap);
+      align-items:stretch;
+    }
+    @media (max-width: 980px){
+      .hero-grid{grid-template-columns: 1fr;}
+    }
+    h1{
+      margin: 14px 0 10px;
+      font-size: clamp(34px, 4.2vw, 52px);
+      line-height:1.05;
+      letter-spacing: -.7px;
+    }
+    .hero p{margin: 0 0 14px; color: var(--muted); font-size: 16px}
+    .hero-actions{display:flex; gap:12px; flex-wrap:wrap; margin-top: 14px;}
+    .hero-badges{display:flex; gap:10px; flex-wrap:wrap; margin-top: 18px;}
+    .kpi{
+      display:flex; flex-direction:column; gap:4px;
+      padding: 16px; border-radius: 16px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.05);
+    }
+    .kpi strong{font-size:22px; letter-spacing:-.2px}
+    .kpi span{color: var(--muted); font-size:13px; font-weight:700}
+
+    /* ========== Sections ========== */
+    .section-title{
+      display:flex; align-items:flex-end; justify-content:space-between;
+      gap: 14px; margin: 18px 0 14px;
+    }
+    .section-title h2{
+      margin:0;
+      font-size: 22px;
+      letter-spacing:-.2px;
+    }
+    .section-title p{margin:0; color: var(--muted); max-width: 52ch;}
+
+    .grid-3{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--gap);
+    }
+    @media (max-width: 980px){
+      .grid-3{grid-template-columns: 1fr;}
+    }
+
+    .feature{
+      padding: 18px;
+      border-radius: 18px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.05);
+    }
+    .feature h3{margin:0 0 8px; font-size:16px}
+    .feature p{margin:0; color: var(--muted); font-size:14px}
+
+    .icon{
+      width:42px;height:42px;border-radius:14px;
+      display:inline-flex; align-items:center; justify-content:center;
+      background: linear-gradient(135deg, rgba(124,92,255,.35), rgba(34,211,238,.22));
+      border:1px solid rgba(255,255,255,.14);
+      margin-bottom: 12px;
+    }
+
+    .divider{height:1px; background: rgba(255,255,255,.10); margin: 18px 0;}
+
+    /* ========== Testimonials / Portfolio ========== */
+    .quote{
+      display:flex; flex-direction:column; gap:12px;
+      padding: 18px;
+      border-radius: 18px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.05);
+    }
+    .quote p{margin:0; color: var(--muted)}
+    .quote .who{
+      display:flex; align-items:center; gap:12px;
+      padding-top: 6px;
+    }
+    .avatar{
+      width:36px;height:36px;border-radius:14px;
+      background: linear-gradient(135deg, rgba(255,255,255,.15), rgba(255,255,255,.05));
+      border:1px solid rgba(255,255,255,.14);
+    }
+    .who strong{display:block; font-size:14px}
+    .who span{display:block; font-size:12px; color: var(--faint); font-weight:700}
+
+    /* ========== CTA ========== */
+    .cta{
+      padding: 22px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 18px;
+    }
+    .cta h2{margin:0; font-size:22px}
+    .cta p{margin:6px 0 0; color: var(--muted); max-width: 60ch}
+    .cta-actions{display:flex; gap:10px; flex-wrap:wrap}
+    @media (max-width: 760px){
+      .cta{flex-direction:column; align-items:stretch}
+      .cta-actions{justify-content:flex-start}
+    }
+
+    /* ========== Footer ========== */
+    footer{
+      padding: 26px 0 120px; /* extra bottom space so catfish ad doesn't cover footer */
+      color: var(--muted);
+    }
+    .footer-grid{
+      display:grid; gap: var(--gap);
+      grid-template-columns: 1.3fr 1fr 1fr;
+      border-top:1px solid rgba(255,255,255,.10);
+      padding-top: 18px;
+    }
+    @media (max-width: 980px){
+      .footer-grid{grid-template-columns: 1fr;}
+    }
+    .footer-grid h3{margin:0 0 10px; font-size:14px; color:var(--text)}
+    .footer-grid a{color:var(--muted); font-weight:700; font-size:14px}
+    .fineprint{margin-top: 14px; font-size:12px; color: var(--faint);}
+
+    /* ========== Catfish / Anchor Ad ========== */
+    .anchor-ad-bottom{
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      z-index: 60;
+      padding: 10px 12px;
+      background: rgba(9, 14, 28, .78);
+      border-top: 1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(16px);
+    }
+    .anchor-ad-inner{
+      max-width: var(--max);
+      margin: 0 auto;
+      display:flex;
+      justify-content:center; /* center by default; swap to flex-start/end for left/right alignment */
+    }
+    .catfish-ad{
+      width: min(920px, 100%);
+      display:grid;
+      grid-template-columns: 1fr; /* single row by default */
+      gap: 10px;
+    }
+    .catfish-ad.two-rows{
+      grid-template-columns: 1fr; /* still 1 column, but two ad boxes stacked */
+    }
+    .catfish-ad .ad{
+      min-height: var(--ad-catfish-height);
+      border-style: dashed;
+    }
+    .catfish-close{
+      position:absolute; right:10px; top:10px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .catfish-close:hover{background: rgba(255,255,255,.10)}
+    @media (max-width: 520px){
+      .catfish-close{display:none} /* keep it clean on tiny screens */
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="container nav" role="navigation" aria-label="Primary">
+      <a class="brand" href="#top" aria-label="Atlas Pressworks home">
+        <span class="logo" aria-hidden="true"></span>
+        <span>Atlas Pressworks</span>
+      </a>
+
+      <nav aria-label="Site">
+        <ul>
+          <li><a href="#about">About</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#features">Benefits</a></li>
+          <li><a href="#work">Work</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-cta">
+        <a class="btn nav-toggle" href="#contact" aria-label="Jump to contact">Menu</a>
+        <a class="btn" href="#work">View Portfolio</a>
+        <a class="btn btn-primary" href="#contact">Get a Proposal</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="top" class="container page">
+    <!-- ========================= -->
+    <!-- LEFT SIDE RAIL ADS (reserved) -->
+    <!-- ========================= -->
+    <aside class="sidebar-left ad-rail ad-rail-left" aria-label="Left sidebar advertisements">
+      <!-- AD PLACEHOLDER: Side Rail (Left) -->
+      <div class="ad" id="ad-rail-left">
+        <div>
+          <strong>Side Rail Ad (Left)</strong>
+          <small>Placeholder • ~{{rail}} width</small>
+        </div>
+      </div>
+      <div class="ad-note">Reserved space for left-rail units. Hidden on smaller screens.</div>
+    </aside>
+
+    <!-- ========================= -->
+    <!-- MAIN CONTENT -->
+    <!-- ========================= -->
+    <main>
+      <!-- HERO -->
+      <section class="hero" aria-label="Hero">
+        <div class="hero-grid">
+          <div class="card card-pad">
+            <span class="pill"><span class="dot" aria-hidden="true"></span> Digital publishing for modern audiences</span>
+            <h1>Publish smarter. Grow faster. Keep readers coming back.</h1>
+            <p>
+              Atlas Pressworks is a digital content publishing company that helps brands turn ideas into
+              high-performing stories—then distributes, optimizes, and monetizes them across channels.
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+            </p>
+
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="#contact">Talk to our team</a>
+              <a class="btn" href="#features">Explore benefits</a>
+            </div>
+
+            <div class="hero-badges" aria-label="Key outcomes">
+              <div class="kpi">
+                <strong>+38%</strong>
+                <span>Avg. engagement lift</span>
+              </div>
+              <div class="kpi">
+                <strong>2–6 wks</strong>
+                <span>Time to launch</span>
+              </div>
+              <div class="kpi">
+                <strong>SEO + Social</strong>
+                <span>Distribution engine</span>
+              </div>
+            </div>
+
+            <!-- ========================= -->
+            <!-- TOP BANNER ADS (optionally within hero) -->
+            <!-- Toggle .two-up for two banners side-by-side -->
+            <!-- ========================= -->
+            <div class="banner-top ad-container-top two-up" aria-label="Top banner advertisements">
+              <!-- AD PLACEHOLDER: Top Banner (Left / Full) -->
+              <div class="ad" id="ad-top-1">
+                <div>
+                  <strong>Top Banner Ad #1</strong>
+                  <small>Placeholder • 728×90 / responsive</small>
+                </div>
+              </div>
+
+              <!-- AD PLACEHOLDER: Top Banner (Right) -->
+              <div class="ad" id="ad-top-2">
+                <div>
+                  <strong>Top Banner Ad #2</strong>
+                  <small>Placeholder • 728×90 / responsive</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-pad">
+            <h2 style="margin:0 0 10px; font-size:18px; letter-spacing:-.2px;">What we publish</h2>
+            <p class="muted" style="margin:0 0 14px;">
+              From editorial to interactive formats, we build content systems that scale. Lorem ipsum dolor sit amet,
+              consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.
+            </p>
+
+            <div class="grid-3" style="grid-template-columns: 1fr; gap: 12px;">
+              <div class="feature">
+                <div class="icon" aria-hidden="true">✦</div>
+                <h3>Editorial Studios</h3>
+                <p>Guidelines, tone, and workflows for consistent publishing at speed.</p>
+              </div>
+              <div class="feature">
+                <div class="icon" aria-hidden="true">⟡</div>
+                <h3>Distribution Ops</h3>
+                <p>SEO, newsletters, and social packaging optimized for discovery.</p>
+              </div>
+              <div class="feature">
+                <div class="icon" aria-hidden="true">⬡</div>
+                <h3>Monetization</h3>
+                <p>Ads, sponsorships, and subscriber journeys designed to convert.</p>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- OPTIONAL: Single full-width top banner alternative -->
+            <!--
+            <div class="banner-top ad-container-top" aria-label="Top banner advertisement (single)">
+              <div class="ad" id="ad-top-single">
+                <div>
+                  <strong>Top Banner Ad (Single)</strong>
+                  <small>Placeholder • 970×90 / responsive</small>
+                </div>
+              </div>
+            </div>
+            -->
+            <p class="faint" style="margin:0;">
+              Trusted processes, clean analytics, and brand-safe publishing—built for performance.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABOUT / SERVICES -->
+      <section id="about" class="stack" aria-label="About">
+        <div class="section-title">
+          <div>
+            <h2>About Atlas Pressworks</h2>
+            <p>We combine editorial craft with distribution science to build durable audience growth.</p>
+          </div>
+          <span class="pill"><span class="dot" aria-hidden="true"></span> Brand-safe • Analytics-ready • Scalable</span>
+        </div>
+
+        <div class="grid-3">
+          <article class="card card-pad">
+            <h3 style="margin:0 0 10px;">Our mission</h3>
+            <p class="muted" style="margin:0;">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud
+              exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+            </p>
+          </article>
+
+          <article class="card card-pad">
+            <h3 style="margin:0 0 10px;">Our approach</h3>
+            <p class="muted" style="margin:0;">
+              Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+              Excepteur sint occaecat cupidatat non proident.
+            </p>
+          </article>
+
+          <article class="card card-pad">
+            <h3 style="margin:0 0 10px;">Who we serve</h3>
+            <p class="muted" style="margin:0;">
+              Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium,
+              totam rem aperiam.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="services" class="stack" aria-label="Services">
+        <div class="section-title">
+          <div>
+            <h2>Services</h2>
+            <p>Modular offerings—from full publishing operations to targeted content sprints.</p>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="feature">
+            <div class="icon" aria-hidden="true">📰</div>
+            <h3>Content Strategy</h3>
+            <p>Topic research, editorial calendars, audience segmentation, and format planning.</p>
+          </div>
+          <div class="feature">
+            <div class="icon" aria-hidden="true">🧭</div>
+            <h3>SEO & Discoverability</h3>
+            <p>Search intent mapping, on-page optimization, technical hygiene, and content refreshes.</p>
+          </div>
+          <div class="feature">
+            <div class="icon" aria-hidden="true">📮</div>
+            <h3>Newsletter Programs</h3>
+            <p>Lifecycle flows, templates, deliverability best practices, and growth loops.</p>
+          </div>
+          <div class="feature">
+            <div class="icon" aria-hidden="true">🎬</div>
+            <h3>Multimedia Production</h3>
+            <p>Video shorts, podcasts, and interactive assets designed for platform-native reach.</p>
+          </div>
+          <div class="feature">
+            <div class="icon" aria-hidden="true">📈</div>
+            <h3>Analytics & Insights</h3>
+            <p>Dashboards, content scoring, and experimentation frameworks to iterate fast.</p>
+          </div>
+          <div class="feature">
+            <div class="icon" aria-hidden="true">🤝</div>
+            <h3>Brand Partnerships</h3>
+            <p>Sponsorship packaging, media kits, and campaign reporting for repeatable revenue.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURES / BENEFITS -->
+      <section id="features" class="stack" aria-label="Benefits">
+        <div class="section-title">
+          <div>
+            <h2>Why teams choose us</h2>
+            <p>Benefits built for publishers and brands that care about quality, speed, and monetization.</p>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <article class="card card-pad">
+            <h3 style="margin:0 0 10px;">Faster publishing cadence</h3>
+            <p class="muted" style="margin:0;">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            </p>
+          </article>
+          <article class="card card-pad">
+            <h3 style="margin:0 0 10px;">Stronger distribution</h3>
+            <p class="muted" style="margin:0;">
+              Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+            </p>
+          </article>
+          <article class="card card-pad">
+            <h3 style="margin:0 0 10px;">Monetization-ready layouts</h3>
+            <p class="muted" style="margin:0;">
+              Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+            </p>
+          </article>
+        </div>
+
+        <!-- ========================= -->
+        <!-- OPTIONAL: In-content banner slot (extra) -->
+        <!-- Keep if you want a third top/banner-like unit mid-page; otherwise remove. -->
+        <!-- ========================= -->
+        <div class="banner-top ad-container-top" aria-label="In-content banner advertisement">
+          <!-- AD PLACEHOLDER: In-content Banner -->
+          <div class="ad" id="ad-incontent-1" style="min-height: 110px;">
+            <div>
+              <strong>In-Content Banner (Optional)</strong>
+              <small>Placeholder • 970×250 / responsive</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TESTIMONIALS / PORTFOLIO -->
+      <section id="work" class="stack" aria-label="Testimonials and portfolio">
+        <div class="section-title">
+          <div>
+            <h2>Proof in the work</h2>
+            <p>Testimonials and sample portfolio highlights (placeholder content).</p>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="quote">
+            <p>“Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.”</p>
+            <div class="who">
+              <div class="avatar" aria-hidden="true"></div>
+              <div>
+                <strong>Jordan Lee</strong>
+                <span>Head of Content, ExampleCo</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="quote">
+            <p>“Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.”</p>
+            <div class="who">
+              <div class="avatar" aria-hidden="true"></div>
+              <div>
+                <strong>Priya Nair</strong>
+                <span>VP Marketing, BrandWorks</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="quote">
+            <p>“Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.”</p>
+            <div class="who">
+              <div class="avatar" aria-hidden="true"></div>
+              <div>
+                <strong>Sam Chen</strong>
+                <span>Publisher, Daily Brief</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <article class="card card-pad">
+            <h3 style="margin:0 0 10px;">Portfolio: Editorial Hub</h3>
+            <p class="muted" style="margin:0;">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin eget tortor risus. Vivamus magna justo, lacinia eget.
+            </p>
+          </article>
+          <article class="card card-pad">
+            <h3 style="margin:0 0 10px;">Portfolio: Newsletter Suite</h3>
+            <p class="muted" style="margin:0;">
+              Curabitur non nulla sit amet nisl tempus convallis quis ac lectus. Pellentesque in ipsum id orci porta dapibus.
+            </p>
+          </article>
+          <article class="card card-pad">
+            <h3 style="margin:0 0 10px;">Portfolio: Sponsored Series</h3>
+            <p class="muted" style="margin:0;">
+              Nulla porttitor accumsan tincidunt. Cras ultricies ligula sed magna dictum porta. Donec sollicitudin molestie malesuada.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section id="contact" class="stack" aria-label="Call to action">
+        <div class="card cta">
+          <div>
+            <h2>Ready to build your publishing engine?</h2>
+            <p>
+              Tell us your goals and we’ll map a content + distribution plan. Lorem ipsum dolor sit amet,
+              consectetur adipiscing elit. We’ll respond within one business day.
+            </p>
+          </div>
+          <div class="cta-actions">
+            <a class="btn btn-primary" href="mailto:hello@example.com">Email us</a>
+            <a class="btn" href="#services">Review services</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- FOOTER -->
+      <footer aria-label="Footer">
+        <div class="container" style="padding:0;">
+          <div class="footer-grid">
+            <div>
+              <div class="brand" style="gap:10px; margin-bottom:10px;">
+                <span class="logo" aria-hidden="true"></span>
+                <span>Atlas Pressworks</span>
+              </div>
+              <p class="muted" style="margin:0;">
+                Digital content publishing, distribution, and monetization. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+              </p>
+              <div class="fineprint">© <span id="year"></span> Atlas Pressworks. All rights reserved.</div>
+            </div>
+
+            <div>
+              <h3>Company</h3>
+              <div class="stack" style="gap:10px;">
+                <a href="#about">About</a>
+                <a href="#work">Work</a>
+                <a href="#contact">Contact</a>
+              </div>
+            </div>
+
+            <div>
+              <h3>Resources</h3>
+              <div class="stack" style="gap:10px;">
+                <a href="#services">Services</a>
+                <a href="#features">Benefits</a>
+                <a href="#top">Back to top</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </main>
+
+    <!-- ========================= -->
+    <!-- RIGHT SIDE RAIL ADS (reserved) -->
+    <!-- ========================= -->
+    <aside class="sidebar-right ad-rail ad-rail-right" aria-label="Right sidebar advertisements">
+      <!-- AD PLACEHOLDER: Side Rail (Right) -->
+      <div class="ad" id="ad-rail-right">
+        <div>
+          <strong>Side Rail Ad (Right)</strong>
+          <small>Placeholder • ~{{rail}} width</small>
+        </div>
+      </div>
+      <div class="ad-note">Reserved space for right-rail units. Hidden on smaller screens.</div>
+    </aside>
+  </div>
+
+  <!-- ========================= -->
+  <!-- CATFISH / ANCHOR ADS (fixed to bottom of viewport) -->
+  <!-- Alignment: center (default). For left/right, change .anchor-ad-inner to justify-content:flex-start/end -->
+  <!-- Layout: single row (default). For two rows, add class "two-rows" to .catfish-ad and add a second .ad -->
+  <!-- ========================= -->
+  <div class="anchor-ad-bottom ad-sticky-bottom" role="complementary" aria-label="Anchor advertisements">
+    <button class="catfish-close" type="button" aria-label="Dismiss anchor ad" onclick="document.querySelector('.anchor-ad-bottom').style.display='none'">
+      ✕
+    </button>
+
+    <div class="anchor-ad-inner">
+      <div class="catfish-ad" id="catfish-ad">
+        <!-- AD PLACEHOLDER: Catfish / Anchor (Row 1) -->
+        <div class="ad catfish-ad-slot" id="ad-catfish-1">
+          <div>
+            <strong>Catfish / Anchor Ad</strong>
+            <small>Placeholder • sticky bottom • responsive</small>
+          </div>
+        </div>
+
+        <!-- OPTIONAL: second row of anchor ads -->
+        <!--
+        <div class="ad catfish-ad-slot" id="ad-catfish-2">
+          <div>
+            <strong>Catfish / Anchor Ad (Row 2)</strong>
+            <small>Placeholder • double-row option</small>
+          </div>
+        </div>
+        -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Small production-friendly nicety: current year
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
